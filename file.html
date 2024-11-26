@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hub Command Interface</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            background-image: url('Background.png');/* Ik its ugly im working on it */
+            background-size: fill;
+            background-repeat: no-repeat;
+            color: #333;
+            padding: 20px;
+            text-align: center;
+            transition: background-color 0.3s, color 0.3s;
+            position: relative; /* To position the icon */
+            line-height: 1.5; 
+        }
+        h1 {
+            font-size: 2.0em;
+            margin-bottom: 20px; /* Space below heading */
+        }
+        h2 {
+            font-size: 1.8em;
+            margin: 20px 0; /* Space around subheadings */
+        }
+        button {
+            background-color: #4bad4e;
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+            transition: background-color 0.3s ease, transform 0.1s;
+        }
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.02); /* Slight scale effect on hover */
+        }
+        button:active {
+            background-color: #3e8e41;
+            transform: scale(0.98); /* Slight scale effect on click */
+        }
+        .toggled {
+            background-color: #648DE5 !important; /* Color for toggled state */
+        }
+        input, select {
+            margin: 10px 0;
+            padding: 12px;
+            font-size: 16px;
+            width: 80%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: #648DE5; /* Highlight border on focus */
+            outline: none; /* Remove outline */
+        }
+        .command {
+            margin-top: 20px;
+        }
+        #output, #helpText {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            display: none;
+            transition: background-color 0.3s, color 0.3s;
+            text-align: left; /* Left align text for better readability */
+        }
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #333;
+            color: #f9f9f9;
+        }
+        .dark-mode button {
+            background-color: #555;
+            color: #f9f9f9;
+        }
+        .dark-mode button:hover {
+            background-color: #666;
+        }
+        .dark-mode button:active {
+            background-color: #444;
+        }
+        .dark-mode input, .dark-mode select {
+            background-color: #444;
+            color: #f9f9f9;
+            border-color: #555;
+        }
+        .dark-mode #output, .dark-mode #helpText {
+            background-color: #444;
+            color: #f9f9f9;
+            border-color: #555;
+        }
+        /* Icon styles */
+        #darkModeToggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #333;
+            transition: color 0.3s;
+        }
+        #darkModeToggle:hover {
+            color: #648DE5; /* Change color on hover */
+        }
+        #helpText {
+            font-weight: bold;
+            font-size: 1em; /* Consistent font size for help text */
+        }
+        /* Modal styles */
+        #versionModal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            text-align: left; /* Align text to left */
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hub Command Interface</h1>
+    <button id="darkModeToggle" onclick="toggleDarkMode()">🌙</button>
+    <button id="versionInfoButton" onclick="openVersionModal()" style="position: absolute; top: 20px; left: 20px; background: none; border: none; cursor: pointer; font-size: 24px; color: #333;">?</button>
+
+    <div>
+        <label for="nodeId">Enter Node ID:</label><br>
+    <input type="number" id="nodeId" placeholder="e.g. 7537" min="0" step="1000"><br>
+    <label for="hubId">Enter Hub ID:</label><br>
+    <input type="number" id="hubId" placeholder="e.g. 189" min="0" step="50"><br>
+    <label for="timeInMinutes" style="" >Enter Time in Minutes and Mode:<br>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <input type="number" id="timeInMinutes" placeholder="e.g. 45" min="0" style="width: 39.8%;">
+        <select id="modeChannel" style="width: 39.8%;">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+    </div>
+
+    <div class="command">
+        <h2>Commands</h2>
+        <select id="commandSelect">
+            <option value="">Select a Command</option>
+            <option value="1">Help</option>
+            <option value="2">Erase Data and Reboot Hub</option>
+            <option value="3">Send Hub Supervision Message</option>
+            <option value="4">Send Hub Event Message</option>
+            <option value="5">Set Channel</option>
+            <option value="6">Set Uplink Channel</option>
+            <option value="7">Set Hub ID</option>
+            <option value="8">Set Transport Mode</option>
+            <option value="9">Set Supervision Frequency</option>
+            <option value="10">Toggle Transparent Mode</option>
+            <option value="11">Set Uplink Hub</option>
+            <option value="12">Report Hub Configuration</option>
+            <option value="13">Reboot Hub</option>
+            <option value="14">Set Remote Hub ID</option>
+            <option value="15">Hub Ping</option>
+            <option value="16">Set Modem Mode</option>
+            <option value="17"></option>
+            <option value="18"></option>
+            <option value="19"></option>
+            <option value="20"></option>
+            <option value="21"></option>
+            <option value="22"></option>
+        </select>
+        
+        <button onclick="runCommand()">Run Command</button>
+        <button id="remoteCommandButton" onclick="toggleFormat()">Issue Remote Command</button>
+        <button id="copyButton" style="display: none;" onclick="copyToClipboard()">Copy</button>
+        <button onclick="showHelp()">Help</button>
+    </div>
+
+    <div id="output"></div>
+    <div id="helpText"></div>
+
+    <!-- Modal for version information -->
+    <div id="versionModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeVersionModal()">&times;</span>
+            <h2>About</h2>
+            <p>Hub and Node Command Interface</p>
+            <p>Version: Alpha 1.0</p>
+            <h3>Questions</h3>
+            <p>If you need help, bother mitchell</p>
+            <p>Email: <a href="mailto:mitchell@tumaitaonga.nz">mitchell@tumaitaonga.nz</a></p>
+            <p>Phone: N/A</p>
+        </div>
+    </div>
+
+    <script>
+        // Check for saved dark mode preference and apply
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const darkModeEnabled = document.body.classList.contains('dark-mode');
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            darkModeToggle.innerHTML = darkModeEnabled ? '💡' : '🌙'; // Change icon based on mode
+            localStorage.setItem('darkMode', darkModeEnabled ? 'enabled' : 'disabled');
+        }
+
+        function openVersionModal() {
+            document.getElementById("versionModal").style.display = "block";
+        }
+
+        function closeVersionModal() {
+            document.getElementById("versionModal").style.display = "none";
+        }
+
+        // Prevent default actions for modal close
+        window.onclick = function(event) {
+            const modal = document.getElementById('versionModal');
+            if (event.target == modal) {
+                closeVersionModal();
+            }
+        };
+
+        // Help messages for the commands
+        const helpMessages = {
+            '1': 'Displays help information the thing',
+            '2': 'Warning! Advanced feature for experts only.\n\nErases all data from non-volatile memory (EEPROM), resets configuration to factory settings, and reboots the Hub.',
+            '3': 'Send a Hub Supervision Message to the Uplink Hub or Celium Cloud Servers.\n\nFor a Satellite Uplink Hub, Relay Hub or Mini-Hub, the Supervision Message is sent immediately.\n\nFor a Cellular Uplink Hub, the Supervision Message is sent immediately when modem mode is 1 or 3.\n\nWhen the modem mode is 0 or 2, the Supervision Message is scheduled to be sent 15 minutes after thelast Supervision Message was sent.\n\nTo check the modem mode setting, use the Report Hub Configuration command. Also refer to the Set Modem Mode command.\n\nExample\n>he\nput HostEvntQ 0 6 0',
+            '4': 'Send a Hub Reset Event Message to the Uplink Hub or Celium Cloud Servers.\n\nThe Hub Reset Event Message will be sent immediately.\n\nExample>hf\nput HostEvntQ 0 7 0',
+            '5': 'Warning! Advanced feature for experts only.\n\nSets the communications Channel used to listen for incoming Messages.\nResponses or acknowledgments to incoming Messages are also transmitted on this Channel.\n\n To check the communications Channel value, use the Report Hub Configuration command.\n\n00001, 00002, 00003 are the only valid values available. 00002 is the default value.\n\nExample\n>hg 00002',
+            '6': 'Sets the communications Channel used to send outgoing Messages.\nResponses or acknowledges to outgoing Messages are also transmitted on the Uplink Channel.\n\n The Uplink Channel must match the target device Channel.\nFor example, a Celium Bridge Uplink Channel must match the Celium Hub, Mini-Hub or Node Channel the commands are targeted for.\n\nTo check the Uplink Channel matches the target’s Channel, use Ping. \nA successful Ping indicates the Uplink Channel matches the target’s Channel.\n\n00001, 00002, 00003 are the only valid values available. 00002 is the default value.\n\nExample\n>hh 00002',
+            '7': 'Warning! Advanced feature for experts only.\n\nSets the Hub ID.\n\nExample\n>hi 00101',
+            '8': 'Place the Hub into Transport Mode.\nTransport Mode prevents the Hub attempting to make outgoing connections to Hubs, Nodes and Celium Cloud Servers.\n\nTo wake the Hub from Transport Mode, with the connectors facing down and the removable lid towards you, pass a magnet over the left side.\nUse HubTerm to confirm that the Hub is active.',
+            '9': 'Sets how often the Hub sends a Supervision Message.\n\nTo set the Hub Supervision Frequency to every 3 hours (180 minutes).\n>hs 00180',
+            '10': 'Switch Transparent Mode on or off.\n\nWhen Transparent Mode is on, all Messages are forwarded to the uplink destination; Satellite, Cellular or Hub.\n\nWhen Transparent Mode is off, only Power Up, Events (Resets and Triggers) and Status Update Messages are forwarded.\n\nThis mode is also known as Exceptions Mode.\n\nThis command can also be used to check Transparent Mode status.',
+            '11': 'Sets the Hub to be used as destination for all Messages forwarded by a Relay Hub, Mini-Hub or Bridge.\n\nWhen using a Bridge, use hu 00000 to prevent messages being forwarded to a Hub.\n\nSet to any other value, the Bridge will attempt to relay all messages to a Hub with that ID.',
+            '12': 'Shows the Hub hardware, firmware and core configuration information.\nWhen using the Celium Bridge, the output is truncated.',
+            '13': 'Reboots the Hub.\n\nIf using HubTerm, the Bluetooth connection to the Hub will be lost.\n\nTo issue further commands, the Bluetooth connection must be restored using HubTerm, once the Hub has completed rebooting.',
+            '14': 'Instructs Nodes, for a specified period, to talk to another Hub.\nInitiated when the Node starts up and sends a Power Up Message.\n\nHubid identifies the alternate Hub and is 5-digits with leading zeroes.\nmins is the period in minutes the Hub should redirect Nodes to the alternate Hub and is 5-digits with leading zeroes.\n\nWhen using HubTerm, on issuing the command, you will be prompted for the Hubid and mins.\n\nExample\nUsing HubTerm, setting the target Hub ID to 101 for Nodes that power up in the next 30 minutes.\n\n>hn\nHubid – 00101\nmins - 00030',
+            '15': 'Ping another Hub from the Hub or Bridge.\n\nExample\n>hp 00101',
+            '16': 'Applicable to Cellular Hubs only, this command sets of the method of operation of the Cellular Internet Protocol (IP) modem.\n\nTo check the modem mode setting, use Report Hub Configuration.\n\nThe effect of each parameter is listed here:\n\n00000 Supervision Messages are buffered for up to 15 minutes. IP modem powered off between times.\nEvents are sent immediately, once online all messages are sent.\n\n00001 Immediate send of all messages. IP modem powered down between times.\n\n00002 Supervision Messages are buffered for up to 15 minutes. IP modem left powered on.\n\n00003 Immediate send of all messages. IP modem left powered on.\n\nExample\n>mm 00002',
+            '17': 'Displays help information the thing',
+            '18': 'Displays help information the thing',
+            '19': 'Displays help information the thing',
+            '20': 'Displays help information the thing',
+            '21': 'Displays help information the thing',
+            '22': 'Displays help information the thing',
+        
+        };  
+
+        let isFormatEnabled = false;
+
+        function toggleFormat() {
+            isFormatEnabled = !isFormatEnabled;
+            const remoteCommandButton = document.getElementById('remoteCommandButton');
+            remoteCommandButton.classList.toggle('toggled', isFormatEnabled);
+        }
+
+        function runCommand() {
+            const commandSelect = document.getElementById('commandSelect');
+            const selectedOption = commandSelect.value;
+            const nodeId = document.getElementById('nodeId').value;
+            const hubId = document.getElementById('hubId').value;
+            const modeChannel = document.getElementById('modeChannel').value; // Get selected mode/channel
+            const timeInMinutes = document.getElementById('timeInMinutes').value;
+            let outputMessage = '';
+
+            switch (selectedOption) {
+                case '1': outputMessage = 'Help command executed.'; break;
+                case '2': outputMessage =  'ez'; break;
+                case '3': outputMessage =  'he'; break;
+                case '4': outputMessage =  'hf'; break;
+                case '5': outputMessage =  `hg ` + LeadingZeros(modeChannel,5); break;
+                case '6': outputMessage =  `hh ` + LeadingZeros(modeChannel,5); break;
+                case '7': outputMessage =  'hi '+ LeadingZeros(hubId,5); break;
+                case '8': outputMessage =  'hr'; break;
+                case '9': outputMessage =  'hs '+ LeadingZeros(timeInMinutes,5); break; break;
+                case '10': outputMessage = 'ht'; break;
+                case '11': outputMessage = 'hu '+ LeadingZeros(hubId,5); break;
+                case '12': outputMessage = 'hv'; break;
+                case '13': outputMessage = 'hz'; break;
+                case '14': outputMessage = 'hn '+ LeadingZeros(hubId,5)+' '+LeadingZeros(timeInMinutes,5); break;
+                case '15': outputMessage = 'hp '+ LeadingZeros(hubId,5); break;
+                case '16': outputMessage = `mm `+ LeadingZeros(modeChannel,5); break;
+                case '17': outputMessage = 'hv'; break;
+                case '18': outputMessage = 'hv'; break;
+                case '19': outputMessage = 'hv'; break;
+                case '20': outputMessage = 'hv'; break;
+                case '21': outputMessage = 'hv'; break;
+                case '22': outputMessage = 'hv'; break;
+                default: outputMessage = 'Command not yet implemented.'; break;
+            }
+
+            if (isFormatEnabled) {
+                outputMessage = `hc ${LeadingZeros(hubId, 5)} ${outputMessage}.`;
+            }
+
+            displayOutput(outputMessage);
+        }
+
+        function displayOutput(message) {
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerText = message;
+            outputDiv.style.display = 'block';
+            document.getElementById('copyButton').style.display = 'inline-block';
+        }
+
+        function copyToClipboard() {
+            const outputElement = document.getElementById('output');
+            const outputText = outputElement.innerText;
+            //Idk needs this to work
+            const textarea = document.createElement('textarea');
+            textarea.value = outputText; // Set the value to the output text
+            document.body.appendChild(textarea); // Append to body
+            textarea.select(); // Select the text
+            document.execCommand('copy'); // Copy the text to the clipboard
+            document.body.removeChild(textarea); // Remove the textarea
+        }
+        
+        function showHelp() {
+            const commandSelect = document.getElementById('commandSelect');
+            const selectedOption = commandSelect.value;
+            const helpText = document.getElementById('helpText');
+            helpText.innerText = helpMessages[selectedOption] || 'Select a command to see its help message.';
+            helpText.style.display = 'block';
+        }
+
+        function LeadingZeros(number, totalLength) {
+            return number.toString().padStart(totalLength, '0');
+        }
+    </script>
+</body>
+</html>
