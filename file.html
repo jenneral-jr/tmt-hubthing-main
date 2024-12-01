@@ -8,8 +8,8 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f9f9f9;
-            background-image: url('Background.png');/* Ik its ugly im working on it */
-            background-size: fill;
+            background-image: url('FernBG.svg');/* Ik its ugly im working on it */
+            background-size: cover;
             background-repeat: no-repeat;
             color: #333;
             padding: 20px;
@@ -46,7 +46,7 @@
             transform: scale(0.98); /* Slight scale effect on click */
         }
         .toggled {
-            background-color: #648DE5 !important; /* Color for toggled state */
+            background-color: #48ACF0 !important; /* Color for toggled state */
         }
         input, select {
             margin: 10px 0;
@@ -58,7 +58,7 @@
             transition: background-color 0.3s, color 0.3s;
         }
         input:focus, select:focus {
-            border-color: #648DE5; /* Highlight border on focus */
+            border-color: #48ACF0; /* Highlight border on focus */
             outline: none; /* Remove outline */
         }
         .command {
@@ -80,11 +80,11 @@
             color: #f9f9f9;
         }
         .dark-mode button {
-            background-color: #555;
+            background-color: #ED254E;
             color: #f9f9f9;
         }
         .dark-mode button:hover {
-            background-color: #666;
+            background-color: #d11b3f;
         }
         .dark-mode button:active {
             background-color: #444;
@@ -112,7 +112,7 @@
             transition: color 0.3s;
         }
         #darkModeToggle:hover {
-            color: #648DE5; /* Change color on hover */
+            color: #48ACF0; /* Change color on hover */
         }
         #helpText {
             font-weight: bold;
@@ -150,11 +150,17 @@
             text-decoration: none;
             cursor: pointer;
         }
+        button.run-ready {
+            background-color: #ff9800; /* Highlight color */
+            transform: scale(1.05); /* Slightly bigger to grab attention */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Glow effect */
+}
+
     </style>
 </head>
 <body>
     <h1>Hub Command Interface</h1>
-    <button id="darkModeToggle" onclick="toggleDarkMode()">🌙</button>
+    <button id="darkModeToggle" onclick="toggleDarkMode()">🌒</button>
     <button id="versionInfoButton" onclick="openVersionModal()" style="position: absolute; top: 20px; left: 20px; background: none; border: none; cursor: pointer; font-size: 24px; color: #333;">?</button>
 
     <div>
@@ -177,7 +183,7 @@
         <h2>Commands</h2>
         <select id="commandSelect">
             <option value="">Select a Command</option>
-            <option value="1">Help</option>
+            <option value="1">Remote Command Help</option>
             <option value="2">Erase Data and Reboot Hub</option>
             <option value="3">Send Hub Supervision Message</option>
             <option value="4">Send Hub Event Message</option>
@@ -201,7 +207,7 @@
             <option value="22"></option>
         </select>
         
-        <button onclick="runCommand()">Run Command</button>
+        <button id="runCommandButton" onclick="runCommand()">Run Command</button>
         <button id="remoteCommandButton" onclick="toggleFormat()">Issue Remote Command</button>
         <button id="copyButton" style="display: none;" onclick="copyToClipboard()">Copy</button>
         <button onclick="showHelp()">Help</button>
@@ -218,7 +224,7 @@
             <p>Hub and Node Command Interface</p>
             <p>Version: Alpha 1.0</p>
             <h3>Questions</h3>
-            <p>If you need help, bother mitchell</p>
+            <p>If you need help, contact mitchell.</p>
             <p>Email: <a href="mailto:mitchell@tumaitaonga.nz">mitchell@tumaitaonga.nz</a></p>
             <p>Phone: N/A</p>
         </div>
@@ -234,7 +240,7 @@
             document.body.classList.toggle('dark-mode');
             const darkModeEnabled = document.body.classList.contains('dark-mode');
             const darkModeToggle = document.getElementById('darkModeToggle');
-            darkModeToggle.innerHTML = darkModeEnabled ? '💡' : '🌙'; // Change icon based on mode
+            darkModeToggle.innerHTML = darkModeEnabled ? '💡' : '🌒'; // Change icon based on mode
             localStorage.setItem('darkMode', darkModeEnabled ? 'enabled' : 'disabled');
         }
 
@@ -256,7 +262,7 @@
 
         // Help messages for the commands
         const helpMessages = {
-            '1': 'Displays help information the thing',
+            '1': 'When using a Celium Hub and issuing a Node Command, the Node Command will queue on the Hub and await Nodes in range to send a Power Up Message.\nAll Nodes restarted that are connected to the Hub,causing the Nodes to send a Power Up Message,will respond to the command.\n\nCommand syntax:\n\nhc 00000<Node Command><.>[<esc>]\n\nThe 00000 parameter instructs the Hub to queue a Node Command.\n\nThe <Node Command> parameter is the Node Command to execute, with full list of parameters.\n\nThe <.> parameter is a compulsory full stop character to indicate the end of the Node Command.\n\nThe <esc> parameter is only required when using HubTerm and is added using the HubTerm drop downmenu.',
             '2': 'Warning! Advanced feature for experts only.\n\nErases all data from non-volatile memory (EEPROM), resets configuration to factory settings, and reboots the Hub.',
             '3': 'Send a Hub Supervision Message to the Uplink Hub or Celium Cloud Servers.\n\nFor a Satellite Uplink Hub, Relay Hub or Mini-Hub, the Supervision Message is sent immediately.\n\nFor a Cellular Uplink Hub, the Supervision Message is sent immediately when modem mode is 1 or 3.\n\nWhen the modem mode is 0 or 2, the Supervision Message is scheduled to be sent 15 minutes after thelast Supervision Message was sent.\n\nTo check the modem mode setting, use the Report Hub Configuration command. Also refer to the Set Modem Mode command.\n\nExample\n>he\nput HostEvntQ 0 6 0',
             '4': 'Send a Hub Reset Event Message to the Uplink Hub or Celium Cloud Servers.\n\nThe Hub Reset Event Message will be sent immediately.\n\nExample>hf\nput HostEvntQ 0 7 0',
@@ -299,12 +305,12 @@
             let outputMessage = '';
 
             switch (selectedOption) {
-                case '1': outputMessage = 'Help command executed.'; break;
+                case '1': outputMessage = '🤩'; break;
                 case '2': outputMessage =  'ez'; break;
                 case '3': outputMessage =  'he'; break;
                 case '4': outputMessage =  'hf'; break;
-                case '5': outputMessage =  `hg ` + LeadingZeros(modeChannel,5); break;
-                case '6': outputMessage =  `hh ` + LeadingZeros(modeChannel,5); break;
+                case '5': outputMessage =  `hg `+ LeadingZeros(modeChannel,5); break;
+                case '6': outputMessage =  `hh `+ LeadingZeros(modeChannel,5); break;
                 case '7': outputMessage =  'hi '+ LeadingZeros(hubId,5); break;
                 case '8': outputMessage =  'hr'; break;
                 case '9': outputMessage =  'hs '+ LeadingZeros(timeInMinutes,5); break; break;
